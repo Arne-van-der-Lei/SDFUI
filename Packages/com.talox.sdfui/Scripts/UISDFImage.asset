@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c333ccfdd0cbdbc4ca30cef2dd6e6b9b, type: 3}
   m_Name: UISDFImage
   m_EditorClassIdentifier: 
-  serializedUdonProgramAsset: {fileID: 11400000, guid: f54ece08bc388dc45827b8f59566dc8a,
+  serializedUdonProgramAsset: {fileID: 11400000, guid: 7003995df45ca3b4cbdc008b96cfcebf,
     type: 2}
   udonAssembly: 
   assemblyError: 
@@ -638,7 +638,7 @@ MonoBehaviour:
       Data: 39|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UISDFImageManager, Assembly-CSharp
+      Data: UISDFImageManager, SDFUI
     - Name: 
       Entry: 8
       Data: 
@@ -698,7 +698,7 @@ MonoBehaviour:
       Data: 43|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UISDFImage[], Assembly-CSharp
+      Data: UISDFImage[], SDFUI
     - Name: 
       Entry: 8
       Data: 
