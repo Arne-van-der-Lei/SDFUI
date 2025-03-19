@@ -18,6 +18,9 @@ using VRC.Udon.Common.Interfaces;
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 [RequireComponent(typeof(CanvasRenderer))]
 [RequireComponent(typeof(RectTransform))]
+#if !COMPILER_UDONSHARP && UNITY_EDITOR
+[RequireComponent(typeof(EventTrigger))]
+#endif
 [ExecuteAlways]
 public class UISDFImage : UdonSharpBehaviour
 {
@@ -29,7 +32,7 @@ public class UISDFImage : UdonSharpBehaviour
     [SerializeField]
     internal Material _material;
     [SerializeField]
-    private Vector4 rounding;
+    private Vector4 rounding = new Vector4(1f,1f,1f,1f);
     [SerializeField]
     private Color color = Color.white;
     [SerializeField]
@@ -55,10 +58,10 @@ public class UISDFImage : UdonSharpBehaviour
             
             Vector4[] corners = new Vector4[4]
             {
-                rounding,
-                rounding,
-                rounding,
-                rounding
+                rounding/2,
+                rounding/2,
+                rounding/2,
+                rounding/2
             };
             
             if(_mesh != null)
@@ -194,10 +197,10 @@ public class UISDFImage : UdonSharpBehaviour
         
         Vector4[] corners = new Vector4[4]
         {
-            rounding,
-            rounding,
-            rounding,
-            rounding
+            rounding/2,
+            rounding/2,
+            rounding/2,
+            rounding/2
         };
         
         _mesh.vertices = vertices;
@@ -248,6 +251,10 @@ public class UISDFImage : UdonSharpBehaviour
             SetupMesh();
         UpdateMesh();
         _image.materialCount = 1;
+        
+        if(_material == null)
+            _material = AssetDatabase.LoadAssetAtPath<Material>("Packages/com.talox.sdfui/Materials/SDFUI.mat");
+        
         _image.SetMaterial(_material,0);
         _image.SetColor(color);
         
@@ -259,32 +266,39 @@ public class UISDFImage : UdonSharpBehaviour
             trigger = gameObject.AddComponent<EventTrigger>();
         
         trigger.hideFlags = HideFlags.HideInInspector; 
-        trigger.triggers.Clear();
         
-        MethodInfo info = typeof(UdonBehaviour).GetMethod("SendCustomEvent",BindingFlags.Instance | BindingFlags.Public);
-        
-        UnityAction<string> action = (UnityAction<string>) Delegate.CreateDelegate(typeof(UnityAction<string>),GetComponent<UdonBehaviour>(),info);
-        
-        MethodInfo infoRegister = typeof(EventTrigger.TriggerEvent).GetMethod("AddStringPersistentListener",BindingFlags.Instance | BindingFlags.NonPublic);
-        
-        (EventTriggerType,string)[] events = new (EventTriggerType,string)[]
+        UdonBehaviour udonBehaviour = GetComponent<UdonBehaviour>();
+        if (udonBehaviour != null)
         {
-            (EventTriggerType.PointerEnter,"OnEnter"),
-            (EventTriggerType.PointerExit,"OnExit"),
-            (EventTriggerType.PointerDown,"OnPointerDown"),
-            (EventTriggerType.PointerUp,"OnPointerUp"),
-            (EventTriggerType.PointerClick,"OnClick")
-        };
-        
-        for (int i = 0; i < events.Length; i++)
-        {
-            EventTrigger.Entry entry = new EventTrigger.Entry();
-            entry.eventID = events[i].Item1;
-            entry.callback = new EventTrigger.TriggerEvent();
-            infoRegister.Invoke(entry.callback,new object[] {action,events[i].Item2});
-            trigger.triggers.Add(entry);
+            trigger.triggers.Clear();
+            MethodInfo info =
+                typeof(UdonBehaviour).GetMethod("SendCustomEvent", BindingFlags.Instance | BindingFlags.Public);
+
+            UnityAction<string> action =
+                (UnityAction<string>)Delegate.CreateDelegate(typeof(UnityAction<string>), udonBehaviour, info);
+
+            MethodInfo infoRegister = typeof(EventTrigger.TriggerEvent).GetMethod("AddStringPersistentListener",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            (EventTriggerType, string)[] events = new (EventTriggerType, string)[]
+            {
+                (EventTriggerType.PointerEnter, "OnEnter"),
+                (EventTriggerType.PointerExit, "OnExit"),
+                (EventTriggerType.PointerDown, "OnPointerDown"),
+                (EventTriggerType.PointerUp, "OnPointerUp"),
+                (EventTriggerType.PointerClick, "OnClick")
+            };
+
+            for (int i = 0; i < events.Length; i++)
+            {
+                EventTrigger.Entry entry = new EventTrigger.Entry();
+                entry.eventID = events[i].Item1;
+                entry.callback = new EventTrigger.TriggerEvent();
+                infoRegister.Invoke(entry.callback, new object[] { action, events[i].Item2 });
+                trigger.triggers.Add(entry);
+            }
         }
-        
+
         Canvas canvas = GetComponentInParent<Canvas>();
         
         if(canvas != null)

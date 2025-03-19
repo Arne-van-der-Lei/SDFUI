@@ -27,7 +27,7 @@ public class UISDFImageManager : UdonSharpBehaviour
         for (int i = 0; i < images.Count; i++)
         {
             DataList dataList = images[i].DataList;
-            if (dataList[0].Reference == image)
+            if ((UISDFImage)dataList[0].Reference == image)
             {
                 images.RemoveAt(i);
                 break;
