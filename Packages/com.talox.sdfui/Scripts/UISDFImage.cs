@@ -15,6 +15,12 @@ using VRC.SDKBase;
 using VRC.Udon;
 using VRC.Udon.Common.Interfaces;
 
+public enum CalculationType : int
+{
+    Percent,
+    Units
+}
+
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 [RequireComponent(typeof(CanvasRenderer))]
 [RequireComponent(typeof(RectTransform))]
@@ -31,6 +37,8 @@ public class UISDFImage : UdonSharpBehaviour
     
     [SerializeField]
     internal Material _material;
+    [SerializeField]
+    private CalculationType calculationType = CalculationType.Percent;
     [SerializeField]
     private Vector4 rounding = new Vector4(1f,1f,1f,1f);
     [SerializeField]
@@ -49,6 +57,26 @@ public class UISDFImage : UdonSharpBehaviour
     
     private UISDFImage[] _children;
     
+    public CalculationType CalculationType
+    {
+        get => calculationType;
+        set
+        {
+            calculationType = value;
+            Rect rect = _rectTransform.rect;
+            float min = Mathf.Min(rect.width,rect.height);
+            if(calculationType == CalculationType.Percent)
+            {
+                rounding *= min;
+            }
+            else if(calculationType == CalculationType.Units)
+            {
+                rounding /= min;
+            }
+            Rounding = rounding;
+        }
+    }
+    
     public Vector4 Rounding
     {
         get => rounding;
@@ -56,13 +84,24 @@ public class UISDFImage : UdonSharpBehaviour
         {
             rounding = value;
             
-            Vector4[] corners = new Vector4[4]
+            Vector4[] corners = new Vector4[4];
+            if(calculationType == CalculationType.Percent)
             {
-                rounding/2,
-                rounding/2,
-                rounding/2,
-                rounding/2
-            };
+                corners[0] = rounding / 2;
+                corners[1] = rounding / 2;
+                corners[2] = rounding / 2;
+                corners[3] = rounding / 2;
+            }
+            else if(calculationType == CalculationType.Units)
+            {
+                Rect rect = _rectTransform.rect;
+                float min = Mathf.Min(rect.width,rect.height);
+                Vector4 fixedRounding = rounding / min;
+                corners[0] = fixedRounding;
+                corners[1] = fixedRounding;
+                corners[2] = fixedRounding;
+                corners[3] = fixedRounding;
+            }
             
             if(_mesh != null)
                 _mesh.SetUVs(2,corners);
@@ -151,6 +190,18 @@ public class UISDFImage : UdonSharpBehaviour
             data,
             data
         };
+        
+        if(calculationType == CalculationType.Units)
+        {
+            Vector4[] corners = new Vector4[4];
+            float min = Mathf.Min(rect.width,rect.height);
+            Vector4 fixedRounding = rounding / min;
+            corners[0] = fixedRounding;
+            corners[1] = fixedRounding;
+            corners[2] = fixedRounding;
+            corners[3] = fixedRounding;
+            _mesh.SetUVs(2,corners);
+        }
         
         _mesh.vertices = vertices;
         _mesh.SetUVs(1,uv2);
@@ -345,6 +396,7 @@ public class UISDFImageEditor : Editor
         EditorGUI.BeginChangeCheck();
         Sprite sprite = (Sprite) EditorGUILayout.ObjectField("Sprite",_target.Sprite,typeof(Sprite),false);
         Material material = (Material) EditorGUILayout.ObjectField("Material",_target.Material,typeof(Material),false);
+        CalculationType calculationType = (CalculationType) EditorGUILayout.EnumPopup("Calculation Type",_target.CalculationType);
         Vector4 rounding = EditorGUILayout.Vector4Field("rounding",_target.Rounding);
         Color color = EditorGUILayout.ColorField("Color",_target.Color);
         Color OnEnterColor = EditorGUILayout.ColorField("OnEnterColor",_target.OnEnterColor);
@@ -356,6 +408,7 @@ public class UISDFImageEditor : Editor
         if (EditorGUI.EndChangeCheck())
         {
             Undo.RecordObject(_target, "Modify");
+            _target.CalculationType = calculationType;
             _target.Rounding = rounding;
             _target.Sprite = sprite;
             _target.Material = material;

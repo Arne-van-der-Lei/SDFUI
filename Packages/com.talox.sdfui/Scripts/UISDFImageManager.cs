@@ -34,7 +34,7 @@ public class UISDFImageManager : UdonSharpBehaviour
             }
         }
     }
-
+    
     public void LateUpdate()
     {
         Stopwatch stopwatch = new Stopwatch();
@@ -54,6 +54,15 @@ public class UISDFImageManager : UdonSharpBehaviour
                 image.UpdateMesh();
                 rectTransform.hasChanged = false;
             }
+            
+            if(i == ((currentIndex+images.Count)-1)%images.Count)
+            {
+                // We have looped through all images
+                // and updated them, so we can break out of the loop
+                // to avoid unnecessary iterations.
+                break;
+            }
+            
             i++;
             if (stopwatch.ElapsedTicks > msTakenForUIUpdate * 10000)
             {

@@ -120,7 +120,7 @@ Shader "UI/SDF"
                 bool flipxy = IN.data.x > IN.data.y;
                 float2 aspect = float2(flipxy ? IN.data.x / IN.data.y: 1, flipxy ? 1 : IN.data.y / IN.data.x);
                 half4 color = (tex2D(_MainTex, IN.texcoord) + _TextureSampleAdd) * IN.color;
-                color.a *= clamp(lerp(0,1,-(opOnion((IN.texcoord-0.5)*aspect,float2(0.5,0.5)*aspect,IN.data2,1))*300),0,1);
+                color.a *= clamp(lerp(0,1,-(opOnion((IN.texcoord-0.5)*aspect,float2(0.5,0.5)*aspect,IN.data2,1))*30000),0,1);
 
                 #ifdef UNITY_UI_CLIP_RECT
                 color.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
